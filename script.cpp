@@ -1,51 +1,17 @@
 #include <iostream>
 #include <string>
-#include <thread>  
+#include <bitset>
 #include <chrono>
-#include <Arduino.h>
-
-const int numberLEDS = 8;
-int ledPIN[numberLEDS] = {2,3,4,5,6,7,8,9};
-
-void setup(){
-    // Configuración de pines, inicialización, etc.
-    Serial.begin(9600); // Inicia la comunicación serie
-    for(int i = 0; i < numberLEDS; i++){
-        pinMode(ledPIN[i], OUTPUT); // Configura los pines de los LEDs como output
-    }
-}
-void loop(){
-    // Loop de Arduino, controla los LEDs y recibe datos
-  if (Serial.available() > 0) {
-    char receivedByte = Serial.read();
-    // Control de LEDs según los datos recibidos
-    if (receivedByte >= '1' && receivedByte <= '8') {
-      int byteValue = receivedByte - '0'; // Convierte el carácter a un valor numérico
-      for (int bit = 0; bit < numLEDs; bit++) {
-        // Enciende o apaga el LED según el bit correspondiente del byte
-        digitalWrite(ledPins[bit], (byteValue & (1 << bit)) ? HIGH : LOW);
-      }
-    } else if (receivedByte == '0') {
-      // Apaga todos los LEDs
-      for (int i = 0; i < numLEDs; i++) {
-        digitalWrite(ledPins[i], LOW);
-      }
-    }
-    delay(2000); 
-  }
-}
-
-int encrypt() {}
-int desencrypt() {}
+#include <thread>
 
 
-int main() {
+int encrypt(){
     std::string msgToCrypt;
     std::string binaryString = "";
     std::string encryptedMessage = ""; // Almacenará el mensaje encriptado en forma de texto
 
     // Solicita al usuario que ingrese un valor
-    std::cout << "Por favor, ingresa un valor: ";
+    std::cout << "Por favor, ingresa una palabra: ";
 
     // Lee la entrada del usuario y almacénala en la variable
     std::cin >> msgToCrypt;
@@ -54,6 +20,9 @@ int main() {
         // Obtener el valor ASCII del carácter actual y almacenarlo en una variable.
         int asciiValue = static_cast<int>(character); // Conversión explícita de un carácter a número entero
         int asciiEncrypted = asciiValue - 10;
+
+        std::cout << "Carácter original: " << character << std::endl;
+        std::cout << "Carácter encriptado: " << static_cast<char>(asciiEncrypted) << std::endl;
 
         for (int i = 7; i >= 0; i--) {
             int bit = (asciiEncrypted >> i) & 1; // Desplazamiento de bits y máscara para obtener cada bit
@@ -88,5 +57,53 @@ int main() {
     std::cout << "Mensaje encriptado (texto): " << encryptedText << std::endl;
 
     return 0;
+}
+int desencrypt() {
+    std::string mensaje;
+    std::cout << "Por favor, ingresa un mensaje de caracteres: ";
+    std::cin.ignore(); // Limpiamos el búfer de entrada antes de pedir el mensaje
+    std::getline(std::cin, mensaje);
+
+    std::cout << "Códigos ASCII de los caracteres del mensaje + 10 y su representación en binario:" << std::endl;
+
+    std::string mensajeOriginal = ""; // Inicializamos el mensaje original
+
+    for (char caracter : mensaje) {
+        int codigoASCII = static_cast<int>(caracter);
+        int nuevoCodigoASCII = codigoASCII + 10; // Sumamos 10 a los códigos ASCII
+
+        std::cout << caracter << " : " << nuevoCodigoASCII << " en binario: ";
+        std::bitset<8> binary(nuevoCodigoASCII); // Convierte a binario
+        std::cout << binary << " en letra: " << static_cast<char>(binary.to_ulong()) << std::endl;
+
+        mensajeOriginal += static_cast<char>(nuevoCodigoASCII); // Agregamos el caracter modificado al mensaje original
+
+        if (caracter != mensaje.back()) {
+            std::this_thread::sleep_for(std::chrono::seconds(2)); // Espera 2 segundos, excepto en el último carácter
+        }
+    }
+
+    std::cout << "El mensaje original es: " << mensajeOriginal << std::endl;
+
+    return 0;
+}
+
+
+
+
+int main() {
+    std::string initialChoose;
+    std::cout << "¿Desea desencriptar (d) o encriptar (e) un mensaje? ";
+    std::cin >> initialChoose;
+    if(initialChoose == "d"){
+      desencrypt();
+    }
+    else if(initialChoose == "e")
+    {
+      encrypt();
+    }
+    else {
+      std::cout << "ERROR";
+    }
 }
 
