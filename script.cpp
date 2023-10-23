@@ -3,6 +3,8 @@
 #include <bitset>
 #include <chrono>
 #include <thread>
+#include <iostream>
+#include <Windows.h>
 
 
 int encrypt(){
@@ -92,6 +94,60 @@ int desencrypt() {
 
 
 int main() {
+    HANDLE hSerial;
+    hSerial = CreateFile("COM3", GENERIC_READ | GENERIC_WRITE, 0, 0, OPEN_EXISTING, FILE_ATTRIBUTE_NORMAL, 0);
+
+    if (hSerial == INVALID_HANDLE_VALUE) {
+        if (GetLastError() == ERROR_FILE_NOT_FOUND) {
+            std::cerr << "El puerto COM no existe. Asegúrate de que el Arduino esté conectado y que has seleccionado el puerto COM correcto." << std::endl;
+        } else {
+            std::cerr << "Error inesperado al abrir el puerto COM." << std::endl;
+        }
+    } else {
+        DCB dcbSerialParams = {0};
+        dcbSerialParams.DCBlength = sizeof(dcbSerialParams);
+        if (!GetCommState(hSerial, &dcbSerialParams)) {
+            std::cerr << "Error al obtener los parámetros del puerto COM." << std::endl;
+        } else {
+            dcbSerialParams.BaudRate = CBR_9600; // Velocidad de comunicación (debe coincidir con la configuración en el Arduino)
+            dcbSerialParams.ByteSize = 8;
+            dcbSerialParams.StopBits = ONESTOPBIT;
+            dcbSerialParams.Parity = NOPARITY;
+
+            if (!SetCommState(hSerial, &dcbSerialParams)) {
+                std::cerr << "Error al configurar los parámetros del puerto COM." << std::endl;
+            } else {
+                char command;
+                while (true) {
+                    std::cout << "Ingresa '1' para encender el LED o '0' para apagarlo: ";
+                    std::cin >> command;
+
+                    DWORD bytesWritten;
+                    if (!WriteFile(hSerial, &command, 1, &bytesWritten, NULL)) {
+                        std::cerr << "Error al enviar datos al puerto COM." << std::endl;
+                        break;
+                    }
+
+                    // Es importante añadir un pequeño retraso antes de leer la respuesta
+                    // para permitir que Arduino procese y responda adecuadamente.
+                    Sleep(100);
+
+                    char response;
+                    DWORD bytesRead;
+                    if (ReadFile(hSerial, &response, 1, &bytesRead, NULL)) {
+                        std::cout << "Respuesta del Arduino: " << response << std::endl;
+                    } else {
+                        std::cerr << "Error al recibir respuesta del Arduino." << std::endl;
+                        break;
+                    }
+                }
+            }
+        }
+
+        CloseHandle(hSerial);
+    }
+
+    
     std::string initialChoose;
     std::cout << "¿Desea desencriptar (d) o encriptar (e) un mensaje? ";
     std::cin >> initialChoose;
@@ -105,5 +161,9 @@ int main() {
     else {
       std::cout << "ERROR";
     }
+    
+    
+    
+    return 0;
 }
 
