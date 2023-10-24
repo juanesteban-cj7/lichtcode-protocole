@@ -10,7 +10,7 @@ void setup() {
 }
 
 void loop() {
-  encrypt();  
+  desencrypt();  
 }
 
 void desencrypt(){
@@ -23,6 +23,8 @@ void desencrypt(){
 
     Serial.print("Mensaje Ingresado: ");
     Serial.println(encryptedMessage);
+
+    String originalMessage = "";
 
     // Iteración de cada caracter
     for(int i = 0; i < encryptedMessage.length(); i++){
@@ -43,8 +45,14 @@ void desencrypt(){
 
         // llama la función de control de leds para controlarlos según secuencia binaria
         controlarLEDs(binaryValue);
+
+        // Agrega cada caracter al mensaje original completo
+        originalMessage += char(originalASCIIValue);
+
         delay(2000);
     }
+    Serial.print("El mensaje original es: ");
+    Serial.println(originalMessage);
 }
 
 void encrypt() {
@@ -87,7 +95,6 @@ void encrypt() {
     // // Agregar el carácter encriptado al mensaje encriptado
     encryptedMessage += char(modifiedAsciiValue);
 
-    // Esperar 2 segundos antes de procesar la siguiente letra
     delay(2000);
   }
   Serial.print("Mensaje encriptado: ");
@@ -109,4 +116,3 @@ void controlarLEDs(String binaryValue) {
     digitalWrite(ledsPins[i], estadoLED);
   }
 }
-
