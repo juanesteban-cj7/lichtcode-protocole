@@ -1,3 +1,7 @@
+bool functionRunning = false;
+int button18State = LOW;
+int button19State = LOW;
+
 String encryptedMessage = ""; // Variable para almacenar el mensaje codificado
 String principalMessage = "";  // Variable para almacenar el mensaje
 int ledsPins[] = {2, 3, 4, 5, 6, 7, 8, 9}; // Pines donde están conectados los LEDs
@@ -7,10 +11,28 @@ void setup() {
   for (int i = 0; i < 8; i++) {
     pinMode(ledsPins[i], OUTPUT); // Configurar pines de LEDs como salidas
   }
+  pinMode(18, INPUT_PULLUP);
+  pinMode(19, INPUT_PULLUP); 
 }
 
 void loop() {
-  desencrypt();  
+  // Lee el estado actual de los botones
+  int currentButton18State = digitalRead(18);
+  int currentButton19State = digitalRead(19);
+
+  // Verifica si el botón en el pin 18 se ha presionado
+  if (currentButton18State == LOW && button18State == HIGH) {
+    encrypt();  // Activa la función de cifrado
+  }
+
+  // Verifica si el botón en el pin 19 se ha presionado
+  if (currentButton19State == LOW && button19State == HIGH) {
+    desencrypt();  // Activa la función de descifrado
+  }
+
+  // Actualiza el estado anterior de los botones
+  button18State = currentButton18State;
+  button19State = currentButton19State;
 }
 
 void desencrypt(){
